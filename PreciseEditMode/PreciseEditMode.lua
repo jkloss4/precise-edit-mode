@@ -184,19 +184,26 @@ local function MakeRow(label, suffix, tip, read, write)
         row.Suffix:SetText(suffix)
     end
 
-    function row:Refresh()
-        if not box:HasFocus() then box:SetText(read() or "") end
+    local function Current()
+        local value = attached and read()
+        return value and tostring(value) or ""
     end
 
+    function row:Refresh()
+        if not box:HasFocus() then box:SetText(Current()) end
+    end
+
+    -- Apply the typed value when it's a number that differs from the current one
     local function Commit()
+        if not attached then return end -- the dialog closed while editing: drop the edit
         local value = tonumber((box:GetText() or ""):match("^%s*(.-)%s*$"))
-        if value then write(value) end
-        box:SetText(read() or "")
+        if value and tostring(value) ~= Current() then write(value) end
+        box:SetText(Current())
     end
     box:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
     box:SetScript("OnEditFocusLost", Commit)
     box:SetScript("OnEscapePressed", function(self)
-        self:SetText(read() or "") -- undo the edit; Commit then finds nothing to change
+        self:SetText(Current()) -- undo the edit; Commit then finds nothing to change
         self:ClearFocus()
     end)
     box:SetScript("OnTabPressed", function(self)
