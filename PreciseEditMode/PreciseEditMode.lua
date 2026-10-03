@@ -16,7 +16,15 @@ local ADDON = ...
 local PAD = 20       -- the dialog's widthPadding / heightPadding (40) halved
 local ROW_H = 32     -- Edit Mode setting row height
 local ROW_GAP = 2    -- spacing between the dialog's rows
-local LABEL_W = 100  -- Edit Mode setting label width
+local ICON_LABEL = "Precise Icon Size"
+-- Edit Mode's setting labels are 100 wide; widened to fit the longest label (ICON_LABEL) on one line
+local LABEL_W = 100
+do
+    local measure = UIParent:CreateFontString(nil, "ARTWORK", "GameFontHighlightMedium")
+    measure:SetText(ICON_LABEL)
+    LABEL_W = math.max(LABEL_W, math.ceil(measure:GetUnboundedStringWidth()) + 4)
+    measure:Hide()
+end
 local BOX_W = 70
 local DROPDOWN_W = 120
 local ROW_W = LABEL_W + 5 + DROPDOWN_W -- the widest row (Point)
@@ -308,7 +316,7 @@ MakeRow("Y", nil, "Vertical position" .. POSITION_TIP,
         if x then MoveTo(attached, x, value) end
     end)
 
-local iconRow = MakeRow("Precise Icon Size", "%",
+local iconRow = MakeRow(ICON_LABEL, "%",
     "Any size from 50% to 200%, not just Blizzard's 10% steps. The nearest step is saved in the layout "
     .. "(and shown on the slider); the exact size is kept by Precise Edit Mode for this layout. "
     .. "Moving the Icon Size slider goes back to Blizzard's steps.",
