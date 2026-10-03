@@ -308,7 +308,7 @@ MakeRow("Y", nil, "Vertical position" .. POSITION_TIP,
         if x then MoveTo(attached, x, value) end
     end)
 
-local iconRow = MakeRow(HUD_EDIT_MODE_SETTING_ACTION_BAR_ICON_SIZE or "Icon Size", "%",
+local iconRow = MakeRow("Precise Icon Size", "%",
     "Any size from 50% to 200%, not just Blizzard's 10% steps. The nearest step is saved in the layout "
     .. "(and shown on the slider); the exact size is kept by Precise Edit Mode for this layout. "
     .. "Moving the Icon Size slider goes back to Blizzard's steps.",
