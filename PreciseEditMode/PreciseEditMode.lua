@@ -239,7 +239,8 @@ MakeRow("X", nil, "Horizontal position of the element's center, from the center 
 MakeRow("Y", nil, "Vertical position of the element's center, from the center of the screen. "
     .. "Type a value and press Enter. Saved with Edit Mode's Save button, like dragging.",
     function()
-        local _, y = attached and GetCenterOffset(attached)
+        if not attached then return end
+        local _, y = GetCenterOffset(attached) -- not "attached and ...": that keeps only the first return value
         return y and Round(y)
     end,
     function(value)
