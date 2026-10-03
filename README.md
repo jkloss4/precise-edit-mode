@@ -8,7 +8,7 @@ Made for WoW: Forever (Interface 16001); also lists retail (Interface 120100), w
 ## Features
 
 - **X / Y:** type the exact position of a point on the selected element's blue Edit Mode outline (what Blizzard
-  snaps by), measured from the center of the screen. **Point** picks which one: any corner, the middle of any edge,
+  snaps by), measured from the center of the screen. **Ref Point** picks which one: any corner, the middle of any edge,
   or the center (the default). With Center, `0` centers the element; for mirrored layouts, use Top Left on the left
   side and Top Right on the right side with opposite X values. The values update live while you drag or nudge with
   the arrow keys. A typed position goes through the same steps as Blizzard's own arrow-key nudge, so it's saved with

@@ -258,7 +258,7 @@ do
     local row = CreateFrame("Frame", nil, panel)
     row:SetSize(ROW_W, ROW_H)
     row:EnableMouse(true)
-    Tooltip(row, "Point", "Which point of the element's Edit Mode outline X and Y describe, still measured from the "
+    Tooltip(row, "Ref Point", "Which point of the element's Edit Mode outline X and Y describe, still measured from the "
         .. "center of the screen. For mirrored layouts, use Top Left on the left side and Top Right on the right side "
         .. "with opposite X values.")
 
@@ -266,7 +266,7 @@ do
     row.Label:SetSize(LABEL_W, ROW_H)
     row.Label:SetPoint("LEFT")
     row.Label:SetJustifyH("LEFT")
-    row.Label:SetText("Point")
+    row.Label:SetText("Ref Point")
 
     local dropdown = CreateFrame("DropdownButton", nil, row, "WowStyle1DropdownTemplate")
     dropdown:SetWidth(DROPDOWN_W)
@@ -285,7 +285,7 @@ do
     rows[#rows + 1] = row
 end
 
-local POSITION_TIP = ", from the center of the screen, of the point chosen above on the element's Edit Mode outline. "
+local POSITION_TIP = ", from the center of the screen, of the Ref Point on the element's Edit Mode outline. "
     .. "Type a value and press Enter. Saved with Edit Mode's Save button, like dragging."
 
 MakeRow("X", nil, "Horizontal position" .. POSITION_TIP,
