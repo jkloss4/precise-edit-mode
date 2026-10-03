@@ -384,7 +384,9 @@ panel:SetScript("OnUpdate", function()
 end)
 panel:SetScript("OnHide", function()
     attached = nil
-    for _, row in ipairs(rows) do row.Box:ClearFocus() end
+    for _, row in ipairs(rows) do
+        if row.Box then row.Box:ClearFocus() end -- the Ref Point row has a dropdown instead
+    end
 end)
 
 ---------------------------------------------------------------------------
