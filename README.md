@@ -7,7 +7,8 @@ Made for WoW: Forever (Interface 16001); also lists retail (Interface 120100), w
 
 ## Features
 
-- **X / Y:** type the exact position of the selected element's center, measured from the center of the screen (so
+- **X / Y:** type the exact position of the center of the selected element's blue Edit Mode outline (what Blizzard snaps
+  by), measured from the center of the screen (so
   `0` centers it, and `-300` / `300` mirror each other). The values update live while you drag or nudge with the
   arrow keys. A typed position goes through the same steps as Blizzard's own arrow-key nudge, so it's saved with
   Edit Mode's **Save** button like any other move.

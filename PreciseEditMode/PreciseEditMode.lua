@@ -31,10 +31,13 @@ local function ScaleToUI(frame)
     return frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
 end
 
+-- Measured from the Edit Mode selection box (the blue outline) when there is one: it's what you see, and what
+-- Blizzard snaps by. It can differ from the frame itself, e.g. the buff frame's box leaves out its collapse button.
 local function GetCenterOffset(frame)
-    local left, right, top, bottom = frame:GetLeft(), frame:GetRight(), frame:GetTop(), frame:GetBottom()
+    local box = frame.Selection and frame.Selection:GetLeft() and frame.Selection or frame
+    local left, right, top, bottom = box:GetLeft(), box:GetRight(), box:GetTop(), box:GetBottom()
     if not (left and right and top and bottom) then return end
-    local r = ScaleToUI(frame)
+    local r = ScaleToUI(box)
     return (left + right) / 2 * r - UIParent:GetWidth() / 2, (top + bottom) / 2 * r - UIParent:GetHeight() / 2
 end
 
@@ -225,7 +228,7 @@ end
 
 local function Round(v) return math.floor(v + 0.5) end
 
-MakeRow("X", nil, "Horizontal position of the element's center, from the center of the screen. "
+MakeRow("X", nil, "Horizontal position of the center of the element's Edit Mode outline, from the center of the screen. "
     .. "Type a value and press Enter. Saved with Edit Mode's Save button, like dragging.",
     function()
         local x = attached and GetCenterOffset(attached)
@@ -236,7 +239,7 @@ MakeRow("X", nil, "Horizontal position of the element's center, from the center 
         if y then MoveTo(attached, value, y) end
     end)
 
-MakeRow("Y", nil, "Vertical position of the element's center, from the center of the screen. "
+MakeRow("Y", nil, "Vertical position of the center of the element's Edit Mode outline, from the center of the screen. "
     .. "Type a value and press Enter. Saved with Edit Mode's Save button, like dragging.",
     function()
         if not attached then return end
