@@ -18,6 +18,8 @@ local ROW_H = 32     -- Edit Mode setting row height
 local ROW_GAP = 2    -- spacing between the dialog's rows
 local LABEL_W = 100  -- Edit Mode setting label width
 local BOX_W = 70
+local DROPDOWN_W = 120
+local ROW_W = LABEL_W + 5 + DROPDOWN_W -- the widest row (Point)
 local GAP = 2        -- space between this panel and the dialog
 
 local ICON_MIN, ICON_MAX, ICON_STEP = 50, 200, 10 -- Blizzard's Icon Size slider
@@ -25,25 +27,47 @@ local ICON_MIN, ICON_MAX, ICON_STEP = 50, 200, 10 -- Blizzard's Icon Size slider
 local db -- PreciseEditModeDB
 
 ---------------------------------------------------------------------------
--- Positions (center of the element relative to the center of the screen, in UI units)
+-- Positions (a point of the element relative to the center of the screen, in UI units)
 ---------------------------------------------------------------------------
+-- The point of the element that X/Y describe; fx/fy are its fraction across the element (left/bottom = 0)
+local POINTS = {
+    { key = "TOPLEFT",     label = "Top Left",     fx = 0,   fy = 1 },
+    { key = "TOP",         label = "Top",          fx = 0.5, fy = 1 },
+    { key = "TOPRIGHT",    label = "Top Right",    fx = 1,   fy = 1 },
+    { key = "LEFT",        label = "Left",         fx = 0,   fy = 0.5 },
+    { key = "CENTER",      label = "Center",       fx = 0.5, fy = 0.5 },
+    { key = "RIGHT",       label = "Right",        fx = 1,   fy = 0.5 },
+    { key = "BOTTOMLEFT",  label = "Bottom Left",  fx = 0,   fy = 0 },
+    { key = "BOTTOM",      label = "Bottom",       fx = 0.5, fy = 0 },
+    { key = "BOTTOMRIGHT", label = "Bottom Right", fx = 1,   fy = 0 },
+}
+local POINT_BY_KEY = {}
+for _, p in ipairs(POINTS) do POINT_BY_KEY[p.key] = p end
+
+local function CurrentPoint()
+    return POINT_BY_KEY[db and db.point] or POINT_BY_KEY.CENTER
+end
+
 local function ScaleToUI(frame)
     return frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
 end
 
 -- Measured from the Edit Mode selection box (the blue outline) when there is one: it's what you see, and what
 -- Blizzard snaps by. It can differ from the frame itself, e.g. the buff frame's box leaves out its collapse button.
-local function GetCenterOffset(frame)
+local function GetPointOffset(frame)
     local box = frame.Selection and frame.Selection:GetLeft() and frame.Selection or frame
     local left, right, top, bottom = box:GetLeft(), box:GetRight(), box:GetTop(), box:GetBottom()
     if not (left and right and top and bottom) then return end
     local r = ScaleToUI(box)
-    return (left + right) / 2 * r - UIParent:GetWidth() / 2, (top + bottom) / 2 * r - UIParent:GetHeight() / 2
+    local p = CurrentPoint()
+    local x = (left + (right - left) * p.fx) * r
+    local y = (bottom + (top - bottom) * p.fy) * r
+    return x - UIParent:GetWidth() / 2, y - UIParent:GetHeight() / 2
 end
 
 local function MoveTo(frame, x, y)
     if InCombatLockdown() or not frame:CanBeMoved() then return end
-    local cx, cy = GetCenterOffset(frame)
+    local cx, cy = GetPointOffset(frame)
     if not cx then return end
     local r = ScaleToUI(frame)
     local dx, dy = (x - cx) / r, (y - cy) / r
@@ -138,7 +162,7 @@ panel:SetFrameStrata("DIALOG")
 panel:SetFrameLevel(200)
 panel:EnableMouse(true)
 panel:SetClampedToScreen(true)
-panel:SetWidth(PAD * 2 + LABEL_W + 5 + BOX_W + 24)
+panel:SetWidth(PAD * 2 + ROW_W)
 panel:Hide()
 
 panel.Border = CreateFrame("Frame", nil, panel, "DialogBorderTranslucentTemplate")
@@ -163,7 +187,7 @@ end
 -- A setting row like Edit Mode's: label on the left, then an input box and an optional suffix ("%").
 local function MakeRow(label, suffix, tip, read, write)
     local row = CreateFrame("Frame", nil, panel)
-    row:SetSize(LABEL_W + 5 + BOX_W + 24, ROW_H)
+    row:SetSize(ROW_W, ROW_H)
     row:EnableMouse(true)
     Tooltip(row, label, tip)
 
@@ -211,7 +235,7 @@ local function MakeRow(label, suffix, tip, read, write)
     end)
     box:SetScript("OnTabPressed", function(self)
         local visible = {}
-        for _, r in ipairs(rows) do if r:IsShown() then visible[#visible + 1] = r end end
+        for _, r in ipairs(rows) do if r:IsShown() and r.Box then visible[#visible + 1] = r end end
         for i, r in ipairs(visible) do
             if r == row then
                 local nextRow = visible[(IsShiftKeyDown() and i - 2 or i) % #visible + 1]
@@ -228,26 +252,59 @@ end
 
 local function Round(v) return math.floor(v + 0.5) end
 
-MakeRow("X", nil, "Horizontal position of the center of the element's Edit Mode outline, from the center of the screen. "
-    .. "Type a value and press Enter. Saved with Edit Mode's Save button, like dragging.",
+-- Point: which point of the element's outline X/Y describe. A dropdown row like Edit Mode's.
+local pointDropdown
+do
+    local row = CreateFrame("Frame", nil, panel)
+    row:SetSize(ROW_W, ROW_H)
+    row:EnableMouse(true)
+    Tooltip(row, "Point", "Which point of the element's Edit Mode outline X and Y describe, still measured from the "
+        .. "center of the screen. For mirrored layouts, use Top Left on the left side and Top Right on the right side "
+        .. "with opposite X values.")
+
+    row.Label = row:CreateFontString(nil, "ARTWORK", "GameFontHighlightMedium")
+    row.Label:SetSize(LABEL_W, ROW_H)
+    row.Label:SetPoint("LEFT")
+    row.Label:SetJustifyH("LEFT")
+    row.Label:SetText("Point")
+
+    local dropdown = CreateFrame("DropdownButton", nil, row, "WowStyle1DropdownTemplate")
+    dropdown:SetWidth(DROPDOWN_W)
+    dropdown:SetPoint("LEFT", row.Label, "RIGHT", 5, 0)
+    pointDropdown = dropdown
+    dropdown:SetupMenu(function(_, root)
+        for _, p in ipairs(POINTS) do
+            root:CreateRadio(p.label, function() return CurrentPoint() == p end, function()
+                if db then db.point = p.key end
+                for _, r in ipairs(rows) do r:Refresh() end
+            end)
+        end
+    end)
+
+    function row:Refresh() end -- the dropdown shows its own selection
+    rows[#rows + 1] = row
+end
+
+local POSITION_TIP = ", from the center of the screen, of the point chosen above on the element's Edit Mode outline. "
+    .. "Type a value and press Enter. Saved with Edit Mode's Save button, like dragging."
+
+MakeRow("X", nil, "Horizontal position" .. POSITION_TIP,
     function()
-        local x = attached and GetCenterOffset(attached)
+        local x = GetPointOffset(attached)
         return x and Round(x)
     end,
     function(value)
-        local _, y = GetCenterOffset(attached)
+        local _, y = GetPointOffset(attached)
         if y then MoveTo(attached, value, y) end
     end)
 
-MakeRow("Y", nil, "Vertical position of the center of the element's Edit Mode outline, from the center of the screen. "
-    .. "Type a value and press Enter. Saved with Edit Mode's Save button, like dragging.",
+MakeRow("Y", nil, "Vertical position" .. POSITION_TIP,
     function()
-        if not attached then return end
-        local _, y = GetCenterOffset(attached) -- not "attached and ...": that keeps only the first return value
+        local _, y = GetPointOffset(attached) -- not "attached and ...": that keeps only the first return value
         return y and Round(y)
     end,
     function(value)
-        local x = GetCenterOffset(attached)
+        local x = GetPointOffset(attached)
         if x then MoveTo(attached, x, value) end
     end)
 
@@ -308,6 +365,7 @@ local function Attach(systemFrame)
     local isBar = IsActionBar(systemFrame)
     iconRow:SetShown(isBar)
     panel.Title:SetText(isBar and "Position & Size" or "Position")
+    pointDropdown:GenerateMenu() -- show the saved choice (the menu was first built before saved settings loaded)
     LayoutRows()
     anchoredLeft = nil
     Anchor()
