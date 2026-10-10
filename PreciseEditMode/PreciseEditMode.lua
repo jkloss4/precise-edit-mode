@@ -404,7 +404,7 @@ local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("PLAYER_LOGIN")
 events:RegisterEvent("PLAYER_REGEN_ENABLED")
-events:SetScript("OnEvent", function(_, event, arg)
+events:SetScript("OnEvent", function(_, event, arg, arg2)
     if event == "ADDON_LOADED" then
         if arg ~= ADDON then return end
         PreciseEditModeDB = PreciseEditModeDB or {}
@@ -438,5 +438,17 @@ events:SetScript("OnEvent", function(_, event, arg)
             pending[bar] = nil
             ApplyIconSize(bar)
         end
+
+    elseif event == "ADDON_ACTION_BLOCKED" or event == "ADDON_ACTION_FORBIDDEN" then
+        -- An action the game blocked and blamed on this addon (the "Interface actions failed" count in the AddOns
+        -- list): kept in PreciseEditModeDB.blocked (the last BLOCKED_MAX) to find what caused it
+        local blamed, func = arg, arg2
+        if blamed ~= ADDON or not db then return end
+        db.blocked = db.blocked or {}
+        table.insert(db.blocked, ("%s %s %s combat=%s editMode=%s"):format(date("%Y-%m-%d %H:%M:%S"), event,
+            tostring(func), tostring(InCombatLockdown()), tostring(EditModeManagerFrame:IsShown())))
+        while #db.blocked > 50 do table.remove(db.blocked, 1) end
     end
 end)
+events:RegisterEvent("ADDON_ACTION_BLOCKED")
+events:RegisterEvent("ADDON_ACTION_FORBIDDEN")
