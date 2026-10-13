@@ -1,4 +1,4 @@
-## Interface: 120100, 16001
+## Interface: 120100, 120105, 16001
 ## Title: Precise Edit Mode
 ## Notes: Exact X/Y positions and exact action bar icon sizes in Edit Mode, in a panel beside the settings dialog.
 ## Version: 1.0.0
