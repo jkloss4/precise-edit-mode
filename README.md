@@ -25,7 +25,7 @@ Type a value and press Enter (or click away) to apply it, Escape to undo the edi
 ## Install
 
 Download `PreciseEditMode-<version>.zip` from the [latest release](../../releases/latest) and extract the
-`PreciseEditMode` folder into `World of Warcraft\_classic_beta_\Interface\AddOns\` (retail: `_retail_`).
+`PreciseEditMode` folder into `World of Warcraft\_forever_\Interface\AddOns\` (retail: `_retail_`).
 
 An addon manager that installs from GitHub releases (e.g. WowUp: *Install from URL* with this repo's URL) can also
 install and update it.
